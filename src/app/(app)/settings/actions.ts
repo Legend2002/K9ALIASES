@@ -320,7 +320,7 @@ export async function exportAliasesToPdf(): Promise<{ success: boolean; data?: s
         }
 
         const aliasesResult = await pool.query<Alias>(
-            `SELECT alias, description, is_active as "isActive", created_at as "createdAt"
+            `SELECT id, alias, description, is_active as "isActive", created_at as "createdAt"
              FROM aliases WHERE user_id = $1 ORDER BY created_at DESC`,
             [userId]
         );
