@@ -4,10 +4,10 @@
 import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Settings as SettingsIcon, ShieldCheck, Fingerprint, Smartphone, Laptop, Monitor, Bell, Download, Database, Shuffle } from 'lucide-react';
+import { Loader2, Settings as SettingsIcon, ShieldCheck, Fingerprint, Smartphone, Laptop, Monitor, Bell, Shuffle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-import { getSettingsData, updateAppPreferences, updateNotificationPreferences, getSessions, logoutFromAllOtherDevices, type SettingsData, updateAliasGenerationRules, exportAliasesToPdf } from './actions';
+import { getSettingsData, updateAppPreferences, updateNotificationPreferences, getSessions, logoutFromAllOtherDevices, type SettingsData, updateAliasGenerationRules } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Session } from '@/types';
 
@@ -207,52 +207,6 @@ function NotificationPreferencesForm({ settingsData }: { settingsData: SettingsD
     );
 }
 
-function DataSyncSection() {
-    const [isExporting, setIsExporting] = useState(false);
-    const { toast } = useToast();
-
-    const handleExport = async () => {
-        setIsExporting(true);
-        const result = await exportAliasesToPdf();
-        if (result.success && result.data) {
-            const byteCharacters = atob(result.data);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: 'application/pdf' });
-
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `k9-aliases-export-${new Date().toISOString().split('T')[0]}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            toast({ title: "Export Successful", description: "Your alias data has been downloaded as a PDF." });
-        } else {
-            toast({ variant: 'destructive', title: "Export Failed", description: result.error || "An unknown error occurred." });
-        }
-        setIsExporting(false);
-    };
-    
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Download /> Export Your Data</CardTitle>
-                <CardDescription>Download a PDF file of all your active and inactive aliases for backup or migration purposes.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button onClick={handleExport} disabled={isExporting}>
-                    {isExporting ? <Loader2 className="animate-spin mr-2" /> : null}
-                    Export All Aliases to PDF
-                </Button>
-            </CardContent>
-        </Card>
-    );
-}
-
 function SessionManagement() {
     const [sessions, setSessions] = useState<{ currentSession: Session | null, otherSessions: Session[] }>({ currentSession: null, otherSessions: [] });
     const [loading, setLoading] = useState(true);
@@ -416,10 +370,6 @@ function SettingsPageContent({ initialSettingsData }: { initialSettingsData: Set
                     <ShieldCheck className="mr-2 h-4 w-4" />
                     Privacy & Security
                 </TabsTrigger>
-                <TabsTrigger value="data">
-                    <Database className="mr-2 h-4 w-4" />
-                    Data & Sync
-                </TabsTrigger>
             </TabsList>
             <TabsContent value="preferences" className="space-y-6">
                 <Card>
@@ -469,9 +419,6 @@ function SettingsPageContent({ initialSettingsData }: { initialSettingsData: Set
 
                 <SessionManagement />
             </TabsContent>
-            <TabsContent value="data" className="space-y-6">
-                <DataSyncSection />
-            </TabsContent>
        </Tabs>
   );
 }
@@ -517,5 +464,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
