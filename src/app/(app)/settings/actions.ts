@@ -314,10 +314,15 @@ export async function exportAliasesToPdf(): Promise<{ success: boolean; data?: s
     }
 
     try {
+        const userId = await getUserId();
+        if (!userId) {
+            return { success: false, error: "User not found." };
+        }
+
         const aliasesResult = await pool.query<Alias>(
             `SELECT alias, description, is_active as "isActive", created_at as "createdAt"
-             FROM aliases WHERE user_id = (SELECT id FROM users WHERE email = $1) ORDER BY created_at DESC`,
-            [email]
+             FROM aliases WHERE user_id = $1 ORDER BY created_at DESC`,
+            [userId]
         );
         const aliases = aliasesResult.rows;
 
